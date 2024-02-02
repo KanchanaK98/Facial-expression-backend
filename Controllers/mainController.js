@@ -1,7 +1,7 @@
 exports.createResponse = async (req, res) => {
     console.log("start response...");
-    console.log(req.file);
-    let { file } = req;
+    console.log(req.body.image);
+    let file  = req.body.image;
     
   
     if (!file) {
@@ -13,7 +13,8 @@ exports.createResponse = async (req, res) => {
       const { GoogleGenerativeAI } = require("@google/generative-ai");
       const dotenv = require("dotenv");
       const fs = require("fs");
-  
+      const axios = require('axios');
+      
       dotenv.config();
       const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 
@@ -26,18 +27,32 @@ exports.createResponse = async (req, res) => {
           },
         };
       }
+
+      // Function to download an image from a URL and convert it to a Buffer
+      const downloadImage = async (imageUrl) => {
+        try {
+          const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+          return Buffer.from(response.data, 'binary');
+        } catch (error) {
+          console.error('Error downloading image:', error);
+          throw error;
+        }
+      };
   
+      const imageBuffer = await downloadImage(file);
       // For text-and-image input (multimodal), use the gemini-pro-vision model
         const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
 
         const prompt = "This is a face of a human and what is the emotion this face express?Give me only a expression with only two words";
 
+        const mimeType = 'image/jpeg';
+
         const allowedMimeTypes = ['image/jpeg', 'image/png'];
-        if (!allowedMimeTypes.includes(file.mimetype)) {
+        if (!allowedMimeTypes.includes(mimeType)) {
           return res.status(400).json({ message: 'Invalid file format. Only JPG and PNG are allowed.', success: false });
         }
         const imageParts = [
-          fileToGenerativePart(file.buffer, file.mimetype),
+          fileToGenerativePart(imageBuffer, mimeType),
         ];
 
         
