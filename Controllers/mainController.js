@@ -41,7 +41,7 @@ const getImageMimeType = async (imageUrl) => {
 exports.createResponse = async (req, res) => {
     console.log("start response...");
     let file  = req.body.image;
-    
+    console.log(req.body)
   
     if (!file) {
       return res.status(200).json({ message: "Incomplete image inputted", success: false });
@@ -76,7 +76,16 @@ exports.createResponse = async (req, res) => {
         ];
 
         try {
-          const result = await model.generateContent([prompt, ...imageParts]);
+          const result = await model.generateContent([prompt, ...imageParts],safety_settings=[
+            {
+                "category": "HARM_CATEGORY_HARASSMENT",
+                "threshold": "BLOCK_NONE",
+            },
+            {
+                "category": "HARM_CATEGORY_HATE_SPEECH",
+                "threshold": "BLOCK_NONE",
+            },
+        ]);
           const response = await result.response;
           responseText = response.text();
           console.log(responseText);
