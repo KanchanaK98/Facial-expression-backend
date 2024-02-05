@@ -44,7 +44,7 @@ exports.createResponse = async (req, res) => {
     console.log(req.body)
   
     if (!file) {
-      return res.status(200).json({ message: "Incomplete image inputted", success: false });
+      return res.status(400).json({ message: "File not found", success: false });
     }
 
     let responseText = '';
@@ -94,6 +94,7 @@ exports.createResponse = async (req, res) => {
           console.log("Generated response:", responseText);
         } catch (error) {
           console.error("Error generating content:", error);
+          return res.status(503).json({ message: error, success: false });
         } 
       
     } catch (error) {
